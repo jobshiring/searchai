@@ -4,6 +4,8 @@ import { classify } from './classifier';
 import Researcher from './researcher';
 import { getWriterPrompt } from '@/lib/prompts/search/writer';
 import { WidgetExecutor } from './widgets';
+import generateSuggestions from '../suggestions';
+import crypto from 'crypto';
 
 class APISearchAgent {
   async searchAsync(session: SessionManager, input: SearchAgentInput) {
@@ -42,6 +44,43 @@ class APISearchAgent {
     ]);
 
     if (searchResults) {
+      const searchMode = input.config.searchMode || 'ai';
+      const page = input.config.page || 1;
+      const pageSize = 10;
+
+      if (searchMode === 'search') {
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+        const pagedFindings = searchResults.searchFindings.slice(start, end);
+
+        session.emit('data', {
+          type: 'searchResults',
+          data: pagedFindings,
+        });
+
+        session.emit('data', {
+          type: 'researchComplete',
+        });
+
+        // Generate suggestions for search mode
+        const suggestions = await generateSuggestions(
+          { chatHistory: input.chatHistory },
+          input.config.llm,
+        );
+
+        session.emit('data', {
+          type: 'block',
+          block: {
+            id: crypto.randomBytes(7).toString('hex'),
+            type: 'suggestion',
+            data: suggestions,
+          },
+        });
+
+        session.emit('end', {});
+        return;
+      }
+
       session.emit('data', {
         type: 'searchResults',
         data: searchResults.searchFindings,
@@ -54,9 +93,12 @@ class APISearchAgent {
 
     const finalContext =
       searchResults?.searchFindings
+        .slice(0, 8) // Limit to top 8 search findings to avoid hitting token limits (e.g. Groq TPM)
         .map(
           (f, index) =>
-            `<result index=${index + 1} title=${f.metadata.title}>${f.content}</result>`,
+            `<result index=${index + 1} title=${f.metadata.title}>${
+              f.content.length > 1500 ? f.content.slice(0, 1500) + '...' : f.content
+            }</result>`,
         )
         .join('\n') || '';
 

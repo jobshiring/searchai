@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
 import { Message } from '@/components/ChatWindow';
-import { Block } from '@/lib/types';
+import { Block, SourceBlock } from '@/lib/types';
 import {
   createContext,
   useContext,
@@ -43,6 +43,10 @@ type ChatContext = {
   messageAppeared: boolean;
   isReady: boolean;
   hasError: boolean;
+  aiInsightsEnabled: boolean;
+  setAiInsightsEnabled: (enabled: boolean) => void;
+  searchMode: 'ai' | 'search';
+  setSearchMode: (mode: 'ai' | 'search') => void;
   chatModelProvider: ChatModelProvider;
   embeddingModelProvider: EmbeddingModelProvider;
   researchEnded: boolean;
@@ -55,6 +59,7 @@ type ChatContext = {
     message: string,
     messageId?: string,
     rewrite?: boolean,
+    page?: number,
   ) => Promise<void>;
   rewrite: (messageId: string) => void;
   setChatModelProvider: (provider: ChatModelProvider) => void;
@@ -124,8 +129,11 @@ const checkConfig = async (
 
     chatModelProviderId = chatModelProvider.id;
 
-    const chatModel =
+    let chatModel =
       chatModelProvider.chatModels.find((m) => m.key === chatModelKey) ??
+      chatModelProvider.chatModels.find((m) =>
+        m.key.toLowerCase().includes('llama3'),
+      ) ??
       chatModelProvider.chatModels[0];
     chatModelKey = chatModel.key;
 
@@ -256,6 +264,10 @@ export const chatContext = createContext<ChatContext>({
   chatModelProvider: { key: '', providerId: '' },
   embeddingModelProvider: { key: '', providerId: '' },
   researchEnded: false,
+  aiInsightsEnabled: true,
+  setAiInsightsEnabled: () => {},
+  searchMode: 'ai',
+  setSearchMode: () => {},
   rewrite: () => {},
   sendMessage: async () => {},
   setFileIds: () => {},
@@ -290,6 +302,30 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const [sources, setSources] = useState<string[]>(['web']);
   const [optimizationMode, setOptimizationMode] = useState('speed');
 
+  const [aiInsightsEnabled, setAiInsightsEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('aiInsightsEnabled');
+      return stored ? JSON.parse(stored) : true;
+    }
+    return true;
+  });
+
+  const [searchMode, setSearchMode] = useState<'ai' | 'search'>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('searchMode');
+      return (stored as 'ai' | 'search') || 'ai';
+    }
+    return 'ai';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('aiInsightsEnabled', JSON.stringify(aiInsightsEnabled));
+  }, [aiInsightsEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('searchMode', searchMode);
+  }, [searchMode]);
+
   const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
 
   const [notFound, setNotFound] = useState(false);
@@ -312,6 +348,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const [isReady, setIsReady] = useState(false);
 
   const messagesRef = useRef<Message[]>([]);
+  const initialMessageSent = useRef(false);
 
   const sections = useMemo<Section[]>(() => {
     return messages.map((msg) => {
@@ -441,16 +478,17 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
             partialChunk += decoder.decode(value, { stream: true });
 
-            try {
-              const messages = partialChunk.split('\n');
-              for (const msg of messages) {
-                if (!msg.trim()) continue;
-                const json = JSON.parse(msg);
+            const lines = partialChunk.split('\n');
+            partialChunk = lines.pop() || '';
+
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              try {
+                const json = JSON.parse(line);
                 messageHandler(json);
+              } catch (error) {
+                console.warn('Failed to parse JSON line:', line, error);
               }
-              partialChunk = '';
-            } catch (error) {
-              console.warn('Incomplete JSON, waiting for next chunk...');
             }
           }
         } finally {
@@ -537,11 +575,12 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    if (isReady && initialMessage && isConfigReady) {
+    if (isReady && initialMessage && isConfigReady && !initialMessageSent.current) {
       if (!isConfigReady) {
         toast.error('Cannot send message before the configuration is ready');
         return;
       }
+      initialMessageSent.current = true;
       sendMessage(initialMessage);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -573,6 +612,64 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         ) {
           setMessageAppeared(true);
         }
+      }
+
+      if (data.type === 'searchResults') {
+        const sourceBlock: SourceBlock = {
+          id: crypto.randomBytes(7).toString('hex'),
+          type: 'source',
+          data: data.data,
+        };
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.messageId === messageId
+              ? {
+                  ...msg,
+                  responseBlocks: [...msg.responseBlocks, sourceBlock],
+                }
+              : msg,
+          ),
+        );
+        setMessageAppeared(true);
+      }
+
+      if (data.type === 'response') {
+        setMessages((prev) =>
+          prev.map((msg) => {
+            if (msg.messageId === messageId) {
+              const textBlockIndex = msg.responseBlocks.findIndex(
+                (b) => b.type === 'text',
+              );
+
+              if (textBlockIndex !== -1) {
+                const updatedBlocks = [...msg.responseBlocks];
+                updatedBlocks[textBlockIndex] = {
+                  ...updatedBlocks[textBlockIndex],
+                  data: updatedBlocks[textBlockIndex].data + data.data,
+                } as any;
+
+                return {
+                  ...msg,
+                  responseBlocks: updatedBlocks,
+                };
+              }
+
+              const newTextBlock: Block = {
+                id: crypto.randomBytes(7).toString('hex'),
+                type: 'text',
+                data: data.data,
+              };
+
+              return {
+                ...msg,
+                responseBlocks: [...msg.responseBlocks, newTextBlock],
+              };
+            }
+            return msg;
+          }),
+        );
+        setMessageAppeared(true);
       }
 
       if (data.type === 'block') {
@@ -715,6 +812,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     message,
     messageId,
     rewrite = false,
+    page = 1,
   ) => {
     if (loading || !message) return;
     setLoading(true);
@@ -736,6 +834,9 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       responseBlocks: [],
       status: 'answering',
       createdAt: new Date(),
+      aiInsightsEnabled,
+      searchMode: searchMode,
+      page: page,
     };
 
     setMessages((prevMessages) => [...prevMessages, newMessage]);
@@ -758,6 +859,9 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         files: fileIds,
         sources: sources,
         optimizationMode: optimizationMode,
+        aiInsightsEnabled: aiInsightsEnabled,
+        searchMode: searchMode,
+        page: page,
         history: rewrite
           ? chatHistory.current.slice(
               0,
@@ -791,16 +895,17 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
       partialChunk += decoder.decode(value, { stream: true });
 
-      try {
-        const messages = partialChunk.split('\n');
-        for (const msg of messages) {
-          if (!msg.trim()) continue;
-          const json = JSON.parse(msg);
+      const lines = partialChunk.split('\n');
+      partialChunk = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const json = JSON.parse(line);
           messageHandler(json);
+        } catch (error) {
+          console.warn('Failed to parse JSON line:', line, error);
         }
-        partialChunk = '';
-      } catch (error) {
-        console.warn('Incomplete JSON, waiting for next chunk...');
       }
     }
   };
@@ -826,6 +931,10 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         setFiles,
         setSources,
         setOptimizationMode,
+        aiInsightsEnabled,
+        setAiInsightsEnabled,
+        searchMode,
+        setSearchMode,
         rewrite,
         sendMessage,
         setChatModelProvider,

@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Vane - Direct Your Curiosity',
-    short_name: 'Vane',
-    description: 'Vane is an AI powered answering engine.',
+    name: 'Searchingness - Best AI Answering Engine',
+    short_name: 'Searchingness',
+    description: 'Searchingness is an AI powered answering engine.',
     start_url: '/',
     display: 'standalone',
     background_color: '#0a0a0a',

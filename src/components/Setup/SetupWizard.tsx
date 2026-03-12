@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from 'react';
 import { UIConfigSections } from '@/lib/config/types';
@@ -48,7 +48,7 @@ const SetupWizard = ({
               >
                 Welcome to
                 <span className="text-[#24A0ED] italic font-['PP_Editorial']">
-                  Vane
+                  Searchingness
                 </span>
               </motion.h2>
               <motion.p
@@ -93,7 +93,7 @@ const SetupWizard = ({
                 >
                   Let us get
                   <span className="text-[#24A0ED] italic font-['PP_Editorial']">
-                    Vane
+                    Searchingness
                   </span>{' '}
                   set up for you
                 </motion.p>

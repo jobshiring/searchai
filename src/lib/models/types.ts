@@ -35,6 +35,7 @@ type GenerateOptions = {
   stopSequences?: string[];
   frequencyPenalty?: number;
   presencePenalty?: number;
+  timeout?: number;
 };
 
 type Tool = {

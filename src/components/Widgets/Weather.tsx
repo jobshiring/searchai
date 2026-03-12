@@ -3,6 +3,7 @@
 import { getMeasurementUnit } from '@/lib/config/clientRegistry';
 import { Wind, Droplets, Gauge } from 'lucide-react';
 import { useMemo, useEffect, useState } from 'react';
+import Image from 'next/image';
 
 type WeatherWidgetProps = {
   location: string;
@@ -310,10 +311,12 @@ const Weather = ({
       <div className="relative p-4 text-gray-800 dark:text-white">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            <img
+            <Image
               src={`/weather-ico/${weatherInfo.icon}`}
               alt={weatherInfo.description}
               className="w-16 h-16 drop-shadow-lg"
+              width={64}
+              height={64}
             />
             <div>
               <div className="flex items-baseline gap-1">
@@ -353,10 +356,12 @@ const Weather = ({
               className="flex flex-col items-center bg-gray-800/10 dark:bg-white/10 backdrop-blur-sm rounded-md p-2"
             >
               <p className="text-xs font-medium mb-1">{day.day}</p>
-              <img
+              <Image
                 src={`/weather-ico/${day.icon}`}
                 alt=""
                 className="w-8 h-8 mb-1"
+                width={32}
+                height={32}
               />
               <div className="flex items-center gap-1 text-xs">
                 <span className="font-semibold">{day.high}°</span>

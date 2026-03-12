@@ -19,8 +19,8 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: 'Vane - Direct your curiosity',
-  description: 'Vane is an AI powered answering engine.',
+  title: 'AI Search Engine - Searchingness',
+  description: 'Search the internet with AI, get answers.',
 };
 
 export default function RootLayout({

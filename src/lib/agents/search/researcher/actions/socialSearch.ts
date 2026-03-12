@@ -1,7 +1,7 @@
 import z from 'zod';
 import { ResearchAction } from '../../types';
 import { Chunk, SearchResultsResearchBlock } from '@/lib/types';
-import { searchSearxng } from '@/lib/searxng';
+import { searchTavily } from '@/lib/tavily';
 
 const schema = z.object({
   queries: z.array(z.string()).describe('List of social search queries'),
@@ -58,11 +58,9 @@ const socialSearchAction: ResearchAction<typeof schema> = {
     let results: Chunk[] = [];
 
     const search = async (q: string) => {
-      const res = await searchSearxng(q, {
-        engines: ['reddit'],
-      });
+      const res = await searchTavily(q);
 
-      const resultChunks: Chunk[] = res.results.map((r) => ({
+      const resultChunks: Chunk[] = res.results.map((r: any) => ({
         content: r.content || r.title,
         metadata: {
           title: r.title,

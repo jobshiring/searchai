@@ -9,6 +9,9 @@ export const messages = sqliteTable('messages', {
   chatId: text('chatId').notNull(),
   backendId: text('backendId').notNull(),
   query: text('query').notNull(),
+  aiInsightsEnabled: integer('aiInsightsEnabled', { mode: 'boolean' }).default(
+    true,
+  ),
   createdAt: text('createdAt').notNull(),
   responseBlocks: text('responseBlocks', { mode: 'json' })
     .$type<Block[]>()

@@ -1,3 +1,5 @@
+"use client";
+
 import { Clock, Edit, Share, Trash, FileText, FileDown } from 'lucide-react';
 import { Message } from './ChatWindow';
 import { useEffect, useState, Fragment } from 'react';
@@ -9,7 +11,7 @@ import {
   PopoverPanel,
   Transition,
 } from '@headlessui/react';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import { useChat, Section } from '@/lib/hooks/useChat';
 import { SourceBlock } from '@/lib/types';
 
@@ -244,9 +246,17 @@ const Navbar = () => {
             >
               <Edit size={18} className="text-black/70 dark:text-white/70" />
             </a>
-            <div className="hidden lg:flex items-center gap-2 text-black/50 dark:text-white/50 min-w-0">
-              <Clock size={14} />
-              <span className="text-xs whitespace-nowrap">{timeAgo} ago</span>
+            <div className="hidden lg:flex items-center gap-4 text-black/50 dark:text-white/50 min-w-0">
+              <a
+                href="/"
+                className="text-lg font-bold text-black dark:text-white hover:opacity-80 transition-opacity"
+              >
+                Searchingness
+              </a>
+              <div className="flex items-center gap-2">
+                <Clock size={14} />
+                <span className="text-xs whitespace-nowrap">{timeAgo} ago</span>
+              </div>
             </div>
           </div>
 

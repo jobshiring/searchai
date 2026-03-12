@@ -61,8 +61,8 @@ Vane includes API documentation for programmatic access.
 
 Before diving into coding, setting up your local environment is key. Here's what you need to do:
 
-1. Run `npm install` to install all dependencies.
-2. Use `npm run dev` to start the application in development mode.
+1. Run `pnpm install` to install all dependencies.
+2. Use `pnpm dev` to start the application in development mode.
 3. Open http://localhost:3000 and complete the setup in the UI (API keys, models, search backend URL, etc.).
 
 Database migrations are applied automatically on startup.

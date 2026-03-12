@@ -1,10 +1,10 @@
 import z from 'zod';
 import { ResearchAction } from '../../types';
-import { searchSearxng } from '@/lib/searxng';
+import { searchTavily } from '@/lib/tavily';
 import { Chunk, SearchResultsResearchBlock } from '@/lib/types';
 
 const actionSchema = z.object({
-  type: z.literal('web_search'),
+  type: z.literal('web_search').optional(),
   queries: z
     .array(z.string())
     .describe('An array of search queries to perform web searches for.'),
@@ -113,60 +113,66 @@ const webSearchAction: ResearchAction<typeof actionSchema> = {
     let results: Chunk[] = [];
 
     const search = async (q: string) => {
-      const res = await searchSearxng(q);
+      console.log(`Searching Tavily for: ${q}`);
+      try {
+        const res = await searchTavily(q);
+        console.log(`Tavily response for "${q}":`, res);
 
-      const resultChunks: Chunk[] = res.results.map((r) => ({
-        content: r.content || r.title,
-        metadata: {
-          title: r.title,
-          url: r.url,
-        },
-      }));
-
-      results.push(...resultChunks);
-
-      if (
-        !searchResultsEmitted &&
-        researchBlock &&
-        researchBlock.type === 'research'
-      ) {
-        searchResultsEmitted = true;
-
-        researchBlock.data.subSteps.push({
-          id: searchResultsBlockId,
-          type: 'search_results',
-          reading: resultChunks,
-        });
-
-        additionalConfig.session.updateBlock(additionalConfig.researchBlockId, [
-          {
-            op: 'replace',
-            path: '/data/subSteps',
-            value: researchBlock.data.subSteps,
+        const resultChunks: Chunk[] = res.results.map((r: { content?: string; title: string; url: string }) => ({
+          content: r.content || r.title,
+          metadata: {
+            title: r.title,
+            url: r.url,
           },
-        ]);
-      } else if (
-        searchResultsEmitted &&
-        researchBlock &&
-        researchBlock.type === 'research'
-      ) {
-        const subStepIndex = researchBlock.data.subSteps.findIndex(
-          (step) => step.id === searchResultsBlockId,
-        );
+        }));
 
-        const subStep = researchBlock.data.subSteps[
-          subStepIndex
-        ] as SearchResultsResearchBlock;
+        results.push(...resultChunks);
 
-        subStep.reading.push(...resultChunks);
+        if (
+          !searchResultsEmitted &&
+          researchBlock &&
+          researchBlock.type === 'research'
+        ) {
+          searchResultsEmitted = true;
 
-        additionalConfig.session.updateBlock(additionalConfig.researchBlockId, [
-          {
-            op: 'replace',
-            path: '/data/subSteps',
-            value: researchBlock.data.subSteps,
-          },
-        ]);
+          researchBlock.data.subSteps.push({
+            id: searchResultsBlockId,
+            type: 'search_results',
+            reading: resultChunks,
+          });
+
+          additionalConfig.session.updateBlock(additionalConfig.researchBlockId, [
+            {
+              op: 'replace',
+              path: '/data/subSteps',
+              value: researchBlock.data.subSteps,
+            },
+          ]);
+        } else if (
+          searchResultsEmitted &&
+          researchBlock &&
+          researchBlock.type === 'research'
+        ) {
+          const subStepIndex = researchBlock.data.subSteps.findIndex(
+            (step) => step.id === searchResultsBlockId,
+          );
+
+          const subStep = researchBlock.data.subSteps[
+            subStepIndex
+          ] as SearchResultsResearchBlock;
+
+          subStep.reading.push(...resultChunks);
+
+          additionalConfig.session.updateBlock(additionalConfig.researchBlockId, [
+            {
+              op: 'replace',
+              path: '/data/subSteps',
+              value: researchBlock.data.subSteps,
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error(`Error searching Tavily for "${q}":`, error);
       }
     };
 

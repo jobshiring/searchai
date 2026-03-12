@@ -1,7 +1,7 @@
 import z from 'zod';
 import { ResearchAction } from '../../types';
 import { Chunk, SearchResultsResearchBlock } from '@/lib/types';
-import { searchSearxng } from '@/lib/searxng';
+import { searchTavily } from '@/lib/tavily';
 
 const schema = z.object({
   queries: z.array(z.string()).describe('List of academic search queries'),
@@ -58,11 +58,9 @@ const academicSearchAction: ResearchAction<typeof schema> = {
     let results: Chunk[] = [];
 
     const search = async (q: string) => {
-      const res = await searchSearxng(q, {
-        engines: ['arxiv', 'google scholar', 'pubmed'],
-      });
+      const res = await searchTavily(q);
 
-      const resultChunks: Chunk[] = res.results.map((r) => ({
+      const resultChunks: Chunk[] = res.results.map((r: { content?: string; title: string; url: string }) => ({
         content: r.content || r.title,
         metadata: {
           title: r.title,

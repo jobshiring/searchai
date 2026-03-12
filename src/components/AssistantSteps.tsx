@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { ResearchBlock, ResearchBlockSubStep } from '@/lib/types';
 import { useChat } from '@/lib/hooks/useChat';
 
@@ -193,11 +194,14 @@ const AssistantSteps = ({
                                   className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-light-100 dark:bg-dark-100 text-black/70 dark:text-white/70 border border-light-200 dark:border-dark-200"
                                 >
                                   {faviconUrl && (
-                                    <img
+                                    <Image
                                       src={faviconUrl}
                                       alt=""
                                       className="w-3 h-3 rounded-sm flex-shrink-0"
-                                      onError={(e) => {
+                                      width={12}
+                                      height={12}
+                                      unoptimized
+                                      onError={(e: any) => {
                                         e.currentTarget.style.display = 'none';
                                       }}
                                     />

@@ -13,13 +13,13 @@ docker rm vane
 docker run -d -p 3000:3000 -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:latest
 ```
 
-For slim version:
+For Tavily search:
 
 ```bash
-docker pull itzcrazykns1337/vane:slim-latest
+docker pull itzcrazykns1337/vane:latest
 docker stop vane
 docker rm vane
-docker run -d -p 3000:3000 -e SEARXNG_API_URL=http://your-searxng-url:8080 -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:slim-latest
+docker run -d -p 3000:3000 -e TAVILY_API_KEY=your_key -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:latest
 ```
 
 Once updated, go to http://localhost:3000 and verify the latest changes. Your settings are preserved automatically.
@@ -41,10 +41,10 @@ Once updated, go to http://localhost:3000 and verify the latest changes. Your se
 
 3. Stop and remove the old container, then start the new one:
 
-   ```bash
+   ```
    docker stop vane
    docker rm vane
-   docker run -p 3000:3000 -p 8080:8080 --name vane vane
+   docker run -p 3000:3000 -e TAVILY_API_KEY=your_key --name vane vane
    ```
 
 4. Once the command completes, go to http://localhost:3000 and verify the latest changes.
@@ -61,19 +61,19 @@ Once updated, go to http://localhost:3000 and verify the latest changes. Your se
 2. Install any new dependencies:
 
    ```bash
-   npm i
+   pnpm i
    ```
 
 3. Rebuild the application:
 
    ```bash
-   npm run build
+   pnpm run build
    ```
 
 4. Restart the application:
 
    ```bash
-   npm run start
+   pnpm run start
    ```
 
 5. Go to http://localhost:3000 and verify the latest changes. Your settings are preserved automatically.

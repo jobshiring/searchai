@@ -59,6 +59,7 @@ export const POST = async (req: Request) => {
         sources: body.sources,
         mode: body.optimizationMode,
         fileIds: [],
+        aiInsightsEnabled: false,
         systemInstructions: body.systemInstructions || '',
       },
       followUp: body.query,

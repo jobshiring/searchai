@@ -83,6 +83,13 @@ class OpenAILLM extends BaseLLM<OpenAIConfig> {
       });
     });
 
+    const requestOptions: any = {};
+    const timeout = input.options?.timeout ?? this.config.options?.timeout;
+
+    if (timeout && Number.isInteger(timeout)) {
+      requestOptions.timeout = timeout;
+    }
+
     const response = await this.openAIClient.chat.completions.create({
       model: this.config.model,
       tools: openaiTools.length > 0 ? openaiTools : undefined,
@@ -98,7 +105,7 @@ class OpenAILLM extends BaseLLM<OpenAIConfig> {
         this.config.options?.frequencyPenalty,
       presence_penalty:
         input.options?.presencePenalty ?? this.config.options?.presencePenalty,
-    });
+    }, requestOptions);
 
     if (response.choices && response.choices.length > 0) {
       return {
@@ -140,6 +147,13 @@ class OpenAILLM extends BaseLLM<OpenAIConfig> {
       });
     });
 
+    const requestOptions: any = {};
+    const timeout = input.options?.timeout ?? this.config.options?.timeout;
+
+    if (timeout && Number.isInteger(timeout)) {
+      requestOptions.timeout = timeout;
+    }
+
     const stream = await this.openAIClient.chat.completions.create({
       model: this.config.model,
       messages: this.convertToOpenAIMessages(input.messages),
@@ -156,7 +170,7 @@ class OpenAILLM extends BaseLLM<OpenAIConfig> {
       presence_penalty:
         input.options?.presencePenalty ?? this.config.options?.presencePenalty,
       stream: true,
-    });
+    }, requestOptions);
 
     let recievedToolCalls: { name: string; id: string; arguments: string }[] =
       [];
@@ -195,6 +209,40 @@ class OpenAILLM extends BaseLLM<OpenAIConfig> {
   }
 
   async generateObject<T>(input: GenerateObjectInput): Promise<T> {
+    const isGroq = this.config.baseURL?.includes('groq.com');
+    
+    const requestOptions: any = {};
+    const timeout = input.options?.timeout ?? this.config.options?.timeout;
+
+    if (timeout && Number.isInteger(timeout)) {
+      requestOptions.timeout = timeout;
+    }
+
+    // Groq and some other providers don't support the newer .parse() method
+    // which uses json_schema. We fallback to json_object or just text parsing.
+    if (isGroq) {
+      const response = await this.openAIClient.chat.completions.create({
+        messages: this.convertToOpenAIMessages(input.messages),
+        model: this.config.model,
+        temperature:
+          input.options?.temperature ?? this.config.options?.temperature ?? 1.0,
+        response_format: { type: 'json_object' },
+      }, requestOptions);
+
+      const content = response.choices[0].message.content!;
+      try {
+        return input.schema.parse(
+          JSON.parse(
+            repairJson(content, {
+              extractJson: true,
+            }) as string,
+          ),
+        ) as T;
+      } catch (err) {
+        throw new Error(`Error parsing response from Groq: ${err}`);
+      }
+    }
+
     const response = await this.openAIClient.chat.completions.parse({
       messages: this.convertToOpenAIMessages(input.messages),
       model: this.config.model,
@@ -210,7 +258,7 @@ class OpenAILLM extends BaseLLM<OpenAIConfig> {
       presence_penalty:
         input.options?.presencePenalty ?? this.config.options?.presencePenalty,
       response_format: zodResponseFormat(input.schema, 'object'),
-    });
+    }, requestOptions);
 
     if (response.choices && response.choices.length > 0) {
       try {
@@ -230,6 +278,15 @@ class OpenAILLM extends BaseLLM<OpenAIConfig> {
   }
 
   async *streamObject<T>(input: GenerateObjectInput): AsyncGenerator<T> {
+    const isGroq = this.config.baseURL?.includes('groq.com');
+
+    // Groq doesn't support the .responses.stream() beta method
+    if (isGroq) {
+      const response = await this.generateObject<T>(input);
+      yield response;
+      return;
+    }
+
     let recievedObj: string = '';
 
     const stream = this.openAIClient.responses.stream({

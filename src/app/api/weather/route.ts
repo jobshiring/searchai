@@ -6,7 +6,7 @@ export const POST = async (req: Request) => {
       measureUnit: 'Imperial' | 'Metric';
     } = await req.json();
 
-    if (!body.lat || !body.lng) {
+    if (body.lat === undefined || body.lng === undefined) {
       return Response.json(
         {
           message: 'Invalid request.',
@@ -23,8 +23,10 @@ export const POST = async (req: Request) => {
 
     const data = await res.json();
 
-    if (data.error) {
-      console.error(`Error fetching weather data: ${data.reason}`);
+    if (data.error || !data.current) {
+      console.error(
+        `Error fetching weather data: ${data.reason || 'Unknown error'}`,
+      );
       return Response.json(
         {
           message: 'An error has occurred.',
@@ -62,95 +64,127 @@ export const POST = async (req: Request) => {
         break;
 
       case 1:
+        weather.icon = `clear-${dayOrNight}`;
         weather.condition = 'Mainly Clear';
+        break;
       case 2:
+        weather.icon = `cloudy-1-${dayOrNight}`;
         weather.condition = 'Partly Cloudy';
+        break;
       case 3:
         weather.icon = `cloudy-1-${dayOrNight}`;
         weather.condition = 'Cloudy';
         break;
 
       case 45:
+        weather.icon = `fog-${dayOrNight}`;
         weather.condition = 'Fog';
+        break;
       case 48:
         weather.icon = `fog-${dayOrNight}`;
         weather.condition = 'Fog';
         break;
 
       case 51:
+        weather.icon = `rainy-1-${dayOrNight}`;
         weather.condition = 'Light Drizzle';
+        break;
       case 53:
+        weather.icon = `rainy-1-${dayOrNight}`;
         weather.condition = 'Moderate Drizzle';
+        break;
       case 55:
         weather.icon = `rainy-1-${dayOrNight}`;
         weather.condition = 'Dense Drizzle';
         break;
 
       case 56:
+        weather.icon = `frost-${dayOrNight}`;
         weather.condition = 'Light Freezing Drizzle';
+        break;
       case 57:
         weather.icon = `frost-${dayOrNight}`;
         weather.condition = 'Dense Freezing Drizzle';
         break;
 
       case 61:
+        weather.icon = `rainy-1-${dayOrNight}`;
         weather.condition = 'Slight Rain';
+        break;
       case 63:
+        weather.icon = `rainy-1-${dayOrNight}`;
         weather.condition = 'Moderate Rain';
+        break;
       case 65:
-        weather.condition = 'Heavy Rain';
         weather.icon = `rainy-2-${dayOrNight}`;
+        weather.condition = 'Heavy Rain';
         break;
 
       case 66:
-        weather.condition = 'Light Freezing Rain';
-      case 67:
-        weather.condition = 'Heavy Freezing Rain';
         weather.icon = 'rain-and-sleet-mix';
+        weather.condition = 'Light Freezing Rain';
+        break;
+      case 67:
+        weather.icon = 'rain-and-sleet-mix';
+        weather.condition = 'Heavy Freezing Rain';
         break;
 
       case 71:
-        weather.condition = 'Slight Snow Fall';
-      case 73:
-        weather.condition = 'Moderate Snow Fall';
-      case 75:
-        weather.condition = 'Heavy Snow Fall';
         weather.icon = `snowy-2-${dayOrNight}`;
+        weather.condition = 'Slight Snow Fall';
+        break;
+      case 73:
+        weather.icon = `snowy-2-${dayOrNight}`;
+        weather.condition = 'Moderate Snow Fall';
+        break;
+      case 75:
+        weather.icon = `snowy-2-${dayOrNight}`;
+        weather.condition = 'Heavy Snow Fall';
         break;
 
       case 77:
-        weather.condition = 'Snow';
         weather.icon = `snowy-1-${dayOrNight}`;
+        weather.condition = 'Snow';
         break;
 
       case 80:
-        weather.condition = 'Slight Rain Showers';
-      case 81:
-        weather.condition = 'Moderate Rain Showers';
-      case 82:
-        weather.condition = 'Heavy Rain Showers';
         weather.icon = `rainy-3-${dayOrNight}`;
+        weather.condition = 'Slight Rain Showers';
+        break;
+      case 81:
+        weather.icon = `rainy-3-${dayOrNight}`;
+        weather.condition = 'Moderate Rain Showers';
+        break;
+      case 82:
+        weather.icon = `rainy-3-${dayOrNight}`;
+        weather.condition = 'Heavy Rain Showers';
         break;
 
       case 85:
-        weather.condition = 'Slight Snow Showers';
-      case 86:
-        weather.condition = 'Moderate Snow Showers';
-      case 87:
-        weather.condition = 'Heavy Snow Showers';
         weather.icon = `snowy-3-${dayOrNight}`;
+        weather.condition = 'Slight Snow Showers';
+        break;
+      case 86:
+        weather.icon = `snowy-3-${dayOrNight}`;
+        weather.condition = 'Moderate Snow Showers';
+        break;
+      case 87:
+        weather.icon = `snowy-3-${dayOrNight}`;
+        weather.condition = 'Heavy Snow Showers';
         break;
 
       case 95:
-        weather.condition = 'Thunderstorm';
         weather.icon = `scattered-thunderstorms-${dayOrNight}`;
+        weather.condition = 'Thunderstorm';
         break;
 
       case 96:
-        weather.condition = 'Thunderstorm with Slight Hail';
-      case 99:
-        weather.condition = 'Thunderstorm with Heavy Hail';
         weather.icon = 'severe-thunderstorm';
+        weather.condition = 'Thunderstorm with Slight Hail';
+        break;
+      case 99:
+        weather.icon = 'severe-thunderstorm';
+        weather.condition = 'Thunderstorm with Heavy Hail';
         break;
 
       default:

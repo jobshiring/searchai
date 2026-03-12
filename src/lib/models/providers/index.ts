@@ -10,11 +10,11 @@ import AnthropicProvider from './anthropic';
 import LMStudioProvider from './lmstudio';
 
 export const providers: Record<string, ProviderConstructor<any>> = {
+  groq: GroqProvider,
   openai: OpenAIProvider,
   ollama: OllamaProvider,
   gemini: GeminiProvider,
   transformers: TransformersProvider,
-  groq: GroqProvider,
   lemonade: LemonadeProvider,
   anthropic: AnthropicProvider,
   lmstudio: LMStudioProvider,

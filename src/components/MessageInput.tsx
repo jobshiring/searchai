@@ -1,14 +1,13 @@
 import { cn } from '@/lib/utils';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, Search, Sparkles } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import AttachSmall from './MessageInputActions/AttachSmall';
 import { useChat } from '@/lib/hooks/useChat';
 
 const MessageInput = () => {
-  const { loading, sendMessage } = useChat();
+  const { loading, sendMessage, searchMode, setSearchMode } = useChat();
 
-  const [copilotEnabled, setCopilotEnabled] = useState(false);
   const [message, setMessage] = useState('');
   const [textareaRows, setTextareaRows] = useState(1);
   const [mode, setMode] = useState<'multi' | 'single'>('single');
@@ -65,6 +64,31 @@ const MessageInput = () => {
         mode === 'multi' ? 'flex-col rounded-2xl' : 'flex-row rounded-full',
       )}
     >
+      <div className="flex items-center space-x-2 pr-2">
+        <button
+          type="button"
+          onClick={() => setSearchMode(searchMode === 'ai' ? 'search' : 'ai')}
+          className={cn(
+            'flex items-center space-x-1 p-2 rounded-full transition-colors duration-200',
+            searchMode === 'ai'
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400',
+          )}
+          title={searchMode === 'ai' ? 'Switch to Search mode' : 'Switch to AI mode'}
+        >
+          {searchMode === 'ai' ? (
+            <>
+              <Sparkles size={16} />
+              <span className="text-xs font-medium hidden sm:inline">AI</span>
+            </>
+          ) : (
+            <>
+              <Search size={16} />
+              <span className="text-xs font-medium hidden sm:inline">Search</span>
+            </>
+          )}
+        </button>
+      </div>
       {mode === 'single' && <AttachSmall />}
       <TextareaAutosize
         ref={inputRef}
@@ -74,7 +98,7 @@ const MessageInput = () => {
           setTextareaRows(Math.ceil(height / props.rowHeight));
         }}
         className="transition bg-transparent dark:placeholder:text-white/50 placeholder:text-sm text-sm dark:text-white resize-none focus:outline-none w-full px-2 max-h-24 lg:max-h-36 xl:max-h-48 flex-grow flex-shrink"
-        placeholder="Ask a follow-up"
+        placeholder={searchMode === 'ai' ? "Ask a follow-up" : "Search the web"}
       />
       {mode === 'single' && (
         <button

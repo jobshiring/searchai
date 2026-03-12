@@ -20,6 +20,9 @@ export interface Message extends BaseMessage {
   query: string;
   responseBlocks: Block[];
   status: 'answering' | 'completed' | 'error';
+  aiInsightsEnabled: boolean;
+  searchMode?: 'ai' | 'search';
+  page?: number;
 }
 
 export interface File {

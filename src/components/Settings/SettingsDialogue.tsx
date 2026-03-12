@@ -1,3 +1,5 @@
+"use client";
+
 import { Dialog, DialogPanel } from '@headlessui/react';
 import {
   ArrowLeft,

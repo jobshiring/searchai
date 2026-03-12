@@ -16,8 +16,8 @@ class Researcher {
       input.config.mode === 'speed'
         ? 2
         : input.config.mode === 'balanced'
-          ? 6
-          : 25;
+          ? 4
+          : 15;
 
     const availableTools = ActionRegistry.getAvailableActionTools({
       classification: input.classification,
@@ -56,7 +56,15 @@ class Researcher {
       },
     ];
 
+    const startTime = Date.now();
+    const maxResearchTime = 120000; // 2 mins total max for research
+
     for (let i = 0; i < maxIteration; i++) {
+      if (Date.now() - startTime > maxResearchTime) {
+        console.warn('Research process exceeded max research time, terminating loop early.');
+        break;
+      }
+
       const researcherPrompt = getResearcherPrompt(
         availableActionsDescription,
         input.config.mode,
@@ -74,6 +82,9 @@ class Researcher {
           ...agentMessageHistory,
         ],
         tools: availableTools,
+        options: {
+          timeout: 30000, // 30s timeout for each iteration
+        } as any,
       });
 
       const block = session.getBlock(researchBlockId);
@@ -169,15 +180,43 @@ class Researcher {
         fileIds: input.config.fileIds,
       });
 
-      actionOutput.push(...actionResults);
-
       actionResults.forEach((action, i) => {
-        agentMessageHistory.push({
-          role: 'tool',
-          id: finalToolCalls[i].id,
-          name: finalToolCalls[i].name,
-          content: JSON.stringify(action),
-        });
+        if (action) {
+          actionOutput.push(action);
+
+          // Truncate search results for LLM context to avoid hitting token limits (e.g. Groq TPM)
+          let actionForContext: any = action;
+          if (action.type === 'search_results') {
+            actionForContext = {
+              ...action,
+              results: action.results
+                .map((r) => ({
+                  ...r,
+                  content:
+                    r.content.length > 1500
+                      ? r.content.slice(0, 1500) + '...'
+                      : r.content,
+                }))
+                .slice(0, 4), // Limit to top 4 results for context reasoning
+            };
+          }
+
+          agentMessageHistory.push({
+            role: 'tool',
+            id: finalToolCalls[i].id,
+            name: finalToolCalls[i].name,
+            content: JSON.stringify(actionForContext),
+          });
+        } else {
+          agentMessageHistory.push({
+            role: 'tool',
+            id: finalToolCalls[i].id,
+            name: finalToolCalls[i].name,
+            content: JSON.stringify({
+              error: `Action ${finalToolCalls[i].name} failed to execute`,
+            }),
+          });
+        }
       });
     }
 

@@ -75,7 +75,7 @@ class ActionRegistry {
       throw new Error(`Action with name ${name} not found`);
     }
 
-    return action.execute(params, additionalConfig);
+    return action.execute({ ...params, type: name }, additionalConfig);
   }
 
   static async executeAll(
@@ -84,21 +84,21 @@ class ActionRegistry {
       researchBlockId: string;
       fileIds: string[];
     },
-  ): Promise<ActionOutput[]> {
-    const results: ActionOutput[] = [];
-
-    await Promise.all(
+  ): Promise<(ActionOutput | null)[]> {
+    return await Promise.all(
       actions.map(async (actionConfig) => {
-        const output = await this.execute(
-          actionConfig.name,
-          actionConfig.arguments,
-          additionalConfig,
-        );
-        results.push(output);
+        try {
+          return await this.execute(
+            actionConfig.name,
+            actionConfig.arguments,
+            additionalConfig,
+          );
+        } catch (error) {
+          console.error(`Error executing action ${actionConfig.name}:`, error);
+          return null;
+        }
       }),
     );
-
-    return results;
   }
 }
 

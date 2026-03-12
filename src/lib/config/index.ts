@@ -17,7 +17,7 @@ class ConfigManager {
     personalization: {},
     modelProviders: [],
     search: {
-      searxngURL: '',
+      tavilyApiKey: '',
     },
   };
   uiConfigSections: UIConfigSections = {
@@ -103,15 +103,15 @@ class ConfigManager {
     modelProviders: [],
     search: [
       {
-        name: 'SearXNG URL',
-        key: 'searxngURL',
-        type: 'string',
-        required: false,
-        description: 'The URL of your SearXNG instance',
-        placeholder: 'http://localhost:4000',
+        name: 'Tavily API Key',
+        key: 'tavilyApiKey',
+        type: 'password',
+        required: true,
+        description: 'Your Tavily API key',
+        placeholder: 'Tavily API Key',
         default: '',
         scope: 'server',
-        env: 'SEARXNG_API_URL',
+        env: 'TAVILY_API_KEY',
       },
     ],
   };

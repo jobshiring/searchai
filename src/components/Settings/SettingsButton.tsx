@@ -1,9 +1,7 @@
 import { Settings } from 'lucide-react';
 import { useState } from 'react';
 import SettingsDialogue from './SettingsDialogue';
-import { AnimatePresence } from 'framer-motion';
-
-const SettingsButton = () => {
+import { motion, AnimatePresence } from 'framer-motion';const SettingsButton = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   return (

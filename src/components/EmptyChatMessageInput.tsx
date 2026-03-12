@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowRight } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
@@ -55,30 +57,28 @@ const EmptyChatMessageInput = () => {
       }}
       className="w-full"
     >
-      <div className="flex flex-col bg-light-secondary dark:bg-dark-secondary px-3 pt-5 pb-3 rounded-2xl w-full border border-light-200 dark:border-dark-200 shadow-sm shadow-light-200/10 dark:shadow-black/20 transition-all duration-200 focus-within:border-light-300 dark:focus-within:border-dark-300">
+      <div className="flex flex-col bg-light-secondary dark:bg-dark-secondary px-5 pt-6 pb-4 rounded-3xl w-full border border-light-200 dark:border-dark-200 shadow-md shadow-light-200/20 dark:shadow-black/40 transition-all duration-300 focus-within:border-sky-500/50 dark:focus-within:border-sky-500/50 focus-within:ring-4 focus-within:ring-sky-500/5 dark:focus-within:ring-sky-500/10">
         <TextareaAutosize
           ref={inputRef}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          minRows={2}
-          className="px-2 bg-transparent placeholder:text-[15px] placeholder:text-black/50 dark:placeholder:text-white/50 text-sm text-black dark:text-white resize-none focus:outline-none w-full max-h-24 lg:max-h-36 xl:max-h-48"
-          placeholder="Ask anything..."
+          minRows={1}
+          className="px-2 bg-transparent placeholder:text-lg placeholder:text-black/40 dark:placeholder:text-white/40 text-lg text-black dark:text-white resize-none focus:outline-none w-full max-h-24 lg:max-h-36 xl:max-h-48"
+          placeholder="Search the web or ask a question..."
         />
-        <div className="flex flex-row items-center justify-between mt-4">
-          <Optimization />
-          <div className="flex flex-row items-center space-x-2">
-            <div className="flex flex-row items-center space-x-1">
-              <Sources />
-              <ModelSelector />
-              <Attach />
-            </div>
-            <button
-              disabled={message.trim().length === 0}
-              className="bg-sky-500 text-white disabled:text-black/50 dark:disabled:text-white/50 disabled:bg-[#e0e0dc] dark:disabled:bg-[#ececec21] hover:bg-opacity-85 transition duration-100 rounded-full p-2"
-            >
-              <ArrowRight className="bg-background" size={17} />
-            </button>
+        <div className="flex flex-row items-center justify-between mt-6">
+          <div className="flex flex-row items-center space-x-1 opacity-80 hover:opacity-100 transition-opacity">
+            <Optimization />
+            <Sources />
+            <ModelSelector />
+            <Attach />
           </div>
+          <button
+            disabled={message.trim().length === 0}
+            className="bg-sky-500 text-white disabled:opacity-50 hover:bg-sky-600 transition-all duration-200 rounded-full p-2.5 shadow-lg shadow-sky-500/20"
+          >
+            <ArrowRight size={20} />
+          </button>
         </div>
       </div>
     </form>

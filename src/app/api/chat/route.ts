@@ -36,6 +36,7 @@ const bodySchema = z.object({
   optimizationMode: z.enum(['speed', 'balanced', 'quality'], {
     message: 'Optimization mode must be one of: speed, balanced, quality',
   }),
+  aiInsightsEnabled: z.boolean().optional().default(true),
   sources: z.array(z.string()).optional().default([]),
   history: z
     .array(z.tuple([z.string(), z.string()]))
@@ -45,6 +46,8 @@ const bodySchema = z.object({
   chatModel: chatModelSchema,
   embeddingModel: embeddingModelSchema,
   systemInstructions: z.string().nullable().optional().default(''),
+  searchMode: z.enum(['ai', 'search']).optional().default('ai'),
+  page: z.number().optional().default(1),
 });
 
 type Body = z.infer<typeof bodySchema>;
@@ -185,6 +188,15 @@ export const POST = async (req: Request) => {
               }) + '\n',
             ),
           );
+        } else if (data.type === 'response') {
+          writer.write(
+            encoder.encode(
+              JSON.stringify({
+                type: 'response',
+                data: data.data,
+              }) + '\n',
+            ),
+          );
         }
       } else if (event === 'end') {
         writer.write(
@@ -220,8 +232,11 @@ export const POST = async (req: Request) => {
         embedding: embedding,
         sources: body.sources as SearchSources[],
         mode: body.optimizationMode,
+        aiInsightsEnabled: body.aiInsightsEnabled,
         fileIds: body.files,
         systemInstructions: body.systemInstructions || 'None',
+        searchMode: body.searchMode,
+        page: body.page,
       },
     });
 

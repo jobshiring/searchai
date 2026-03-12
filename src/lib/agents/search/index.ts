@@ -24,6 +24,7 @@ class SearchAgent {
         messageId: input.messageId,
         backendId: session.id,
         query: input.followUp,
+        aiInsightsEnabled: input.config.aiInsightsEnabled,
         createdAt: new Date().toISOString(),
         status: 'answering',
         responseBlocks: [],
@@ -40,6 +41,7 @@ class SearchAgent {
         .set({
           status: 'answering',
           backendId: session.id,
+          aiInsightsEnabled: input.config.aiInsightsEnabled,
           responseBlocks: [],
         })
         .where(
@@ -98,11 +100,34 @@ class SearchAgent {
       type: 'researchComplete',
     });
 
+    if (!input.config.aiInsightsEnabled) {
+      session.emit('end', {});
+
+      await db
+        .update(messages)
+        .set({
+          status: 'completed',
+          responseBlocks: session.getAllBlocks(),
+        })
+        .where(
+          and(
+            eq(messages.chatId, input.chatId),
+            eq(messages.messageId, input.messageId),
+          ),
+        )
+        .execute();
+
+      return;
+    }
+
     const finalContext =
       searchResults?.searchFindings
+        .slice(0, 8) // Limit to top 8 search findings to avoid hitting token limits (e.g. Groq TPM)
         .map(
           (f, index) =>
-            `<result index=${index + 1} title=${f.metadata.title}>${f.content}</result>`,
+            `<result index=${index + 1} title=${f.metadata.title}>${
+              f.content.length > 1500 ? f.content.slice(0, 1500) + '...' : f.content
+            }</result>`,
         )
         .join('\n') || '';
 

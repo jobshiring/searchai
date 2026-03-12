@@ -47,6 +47,9 @@ export const classify = async (input: ClassifierInput) => {
       },
     ],
     schema,
+    options: {
+      timeout: 10000, // 10s timeout for classification
+    },
   });
 
   return output;

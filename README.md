@@ -24,7 +24,7 @@ Want to know more about its architecture and how it works? You can read it [here
 
 🧩 **Widgets** - Helpful UI cards that show up when relevant, like weather, calculations, stock prices, and other quick lookups.
 
-🔍 **Web search powered by SearxNG** - Access multiple search engines while keeping your identity private. Support for Tavily and Exa coming soon for even better results.
+🔍 **Web search powered by Tavily** - Access real-time information with the Tavily Search API, optimized for AI agents and LLMs. Support for other search engines coming soon.
 
 📷 **Image and video search** - Find visual content alongside text results. Search isn't limited to just articles anymore.
 
@@ -86,16 +86,16 @@ Vane can be easily run using Docker. Simply run the following command:
 docker run -d -p 3000:3000 -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:latest
 ```
 
-This will pull and start the Vane container with the bundled SearxNG search engine. Once running, open your browser and navigate to http://localhost:3000. You can then configure your settings (API keys, models, etc.) directly in the setup screen.
+This will pull and start the Vane container. Once running, open your browser and navigate to http://localhost:3000. You can then configure your settings (API keys, models, etc.) directly in the setup screen.
 
-**Note**: The image includes both Vane and SearxNG, so no additional setup is required. The `-v` flags create persistent volumes for your data and uploaded files.
+**Note**: The `-v` flags create persistent volumes for your data and uploaded files.
 
-#### Using Vane with Your Own SearxNG Instance
+#### Using Vane with Tavily
 
-If you already have SearxNG running, you can use the slim version of Vane:
+Vane uses Tavily for web search. You'll need to provide your `TAVILY_API_KEY` in the environment or in the settings UI.
 
 ```bash
-docker run -d -p 3000:3000 -e SEARXNG_API_URL=http://your-searxng-url:8080 -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:slim-latest
+docker run -d -p 3000:3000 -e TAVILY_API_KEY=your_key -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:latest
 ```
 
 **Important**: Make sure your SearxNG instance has:
@@ -142,19 +142,19 @@ If you prefer to build from source or need more control:
 3. Install dependencies:
 
    ```bash
-   npm i
+   pnpm i
    ```
 
 4. Build the application:
 
    ```bash
-   npm run build
+   pnpm build
    ```
 
 5. Start the application:
 
    ```bash
-   npm run start
+   pnpm start
    ```
 
 6. Open your browser and navigate to http://localhost:3000 to complete the setup and configure your settings (API keys, models, SearxNG URL, etc.) in the setup screen.

@@ -162,6 +162,7 @@ fs.readdirSync(migrationsFolder)
             chatId TEXT NOT NULL,
             backendId TEXT NOT NULL,
             query TEXT NOT NULL,
+            aiInsightsEnabled INTEGER DEFAULT 1,
             createdAt TEXT NOT NULL,
             responseBlocks TEXT DEFAULT '[]',
             status TEXT DEFAULT 'answering'
@@ -272,7 +273,16 @@ fs.readdirSync(migrationsFolder)
         // Execute each statement separately
         statements.forEach((stmt) => {
           if (stmt.trim()) {
-            db.exec(stmt);
+            try {
+              db.exec(stmt);
+            } catch (err: any) {
+              // If it's a duplicate column error, we can ignore it
+              if (err.message.includes('duplicate column name')) {
+                console.warn(`Column already exists, skipping: ${stmt}`);
+              } else {
+                throw err;
+              }
+            }
           }
         });
       }

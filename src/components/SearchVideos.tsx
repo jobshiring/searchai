@@ -1,6 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
+"use client";
+
 import { PlayCircle, PlayIcon, PlusIcon, VideoIcon } from 'lucide-react';
 import { useRef, useState } from 'react';
+import Image from 'next/image';
 import Lightbox, { GenericSlide, VideoSlide } from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import { Message } from './ChatWindow';
@@ -110,23 +112,21 @@ const Searchvideos = ({
                   <div
                     onClick={() => {
                       setOpen(true);
-                      setSlides([
-                        slides[i],
-                        ...slides.slice(0, i),
-                        ...slides.slice(i + 1),
-                      ]);
+                      setCurrentIndex(i);
                     }}
-                    className="relative transition duration-200 active:scale-95 hover:scale-[1.02] cursor-pointer"
                     key={i}
+                    className="relative transition duration-200 active:scale-95 hover:scale-[1.02] cursor-pointer"
                   >
-                    <img
+                    <Image
                       src={video.img_src}
                       alt={video.title}
-                      className="relative h-full w-full aspect-video object-cover rounded-lg"
+                      width={300}
+                      height={200}
+                      className="h-full w-full aspect-video object-cover rounded-lg"
+                      unoptimized
                     />
-                    <div className="absolute bg-white/70 dark:bg-black/70 text-black/70 dark:text-white/70 px-2 py-1 flex flex-row items-center space-x-1 bottom-1 right-1 rounded-md">
-                      <PlayCircle size={15} />
-                      <p className="text-xs">Video</p>
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-colors rounded-lg">
+                      <PlayCircle className="text-white opacity-80" size={32} />
                     </div>
                   </div>
                 ))
@@ -134,23 +134,21 @@ const Searchvideos = ({
                   <div
                     onClick={() => {
                       setOpen(true);
-                      setSlides([
-                        slides[i],
-                        ...slides.slice(0, i),
-                        ...slides.slice(i + 1),
-                      ]);
+                      setCurrentIndex(i);
                     }}
-                    className="relative transition duration-200 active:scale-95 hover:scale-[1.02] cursor-pointer"
                     key={i}
+                    className="relative transition duration-200 active:scale-95 hover:scale-[1.02] cursor-pointer"
                   >
-                    <img
+                    <Image
                       src={video.img_src}
                       alt={video.title}
-                      className="relative h-full w-full aspect-video object-cover rounded-lg"
+                      width={300}
+                      height={200}
+                      className="h-full w-full aspect-video object-cover rounded-lg"
+                      unoptimized
                     />
-                    <div className="absolute bg-white/70 dark:bg-black/70 text-black/70 dark:text-white/70 px-2 py-1 flex flex-row items-center space-x-1 bottom-1 right-1 rounded-md">
-                      <PlayCircle size={15} />
-                      <p className="text-xs">Video</p>
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-colors rounded-lg">
+                      <PlayCircle className="text-white opacity-80" size={32} />
                     </div>
                   </div>
                 ))}
@@ -161,15 +159,18 @@ const Searchvideos = ({
               >
                 <div className="flex flex-row items-center space-x-1">
                   {videos.slice(3, 6).map((video, i) => (
-                    <img
+                    <Image
                       key={i}
                       src={video.img_src}
                       alt={video.title}
+                      width={48}
+                      height={24}
                       className="h-6 w-12 rounded-md lg:h-3 lg:w-6 lg:rounded-sm aspect-video object-cover"
+                      unoptimized
                     />
                   ))}
                 </div>
-                <p className="text-black/70 dark:text-white/70 text-xs">
+                <p className="text-black/70 dark:text-white/70 text-xs text-left">
                   View {videos.length - 3} more
                 </p>
               </button>

@@ -12,6 +12,7 @@ export const messages = sqliteTable('messages', {
   aiInsightsEnabled: integer('aiInsightsEnabled', { mode: 'boolean' }).default(
     true,
   ),
+  searchMode: text('searchMode', { enum: ['ai', 'search'] }).default('ai'),
   createdAt: text('createdAt').notNull(),
   responseBlocks: text('responseBlocks', { mode: 'json' })
     .$type<Block[]>()

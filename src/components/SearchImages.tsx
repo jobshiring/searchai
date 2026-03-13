@@ -1,6 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
+"use client";
+
 import { ImagesIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
+import Image from 'next/image';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import { Message } from './ChatWindow';
@@ -90,7 +92,7 @@ const SearchImages = ({
           <div className="grid grid-cols-2 gap-2">
             {images.length > 4
               ? images.slice(0, 3).map((image, i) => (
-                  <img
+                  <Image
                     onClick={() => {
                       setOpen(true);
                       setSlides([
@@ -102,11 +104,14 @@ const SearchImages = ({
                     key={i}
                     src={image.img_src}
                     alt={image.title}
+                    width={300}
+                    height={200}
                     className="h-full w-full aspect-video object-cover rounded-lg transition duration-200 active:scale-95 hover:scale-[1.02] cursor-zoom-in"
+                    unoptimized
                   />
                 ))
               : images.map((image, i) => (
-                  <img
+                  <Image
                     onClick={() => {
                       setOpen(true);
                       setSlides([
@@ -118,7 +123,10 @@ const SearchImages = ({
                     key={i}
                     src={image.img_src}
                     alt={image.title}
+                    width={300}
+                    height={200}
                     className="h-full w-full aspect-video object-cover rounded-lg transition duration-200 active:scale-95 hover:scale-[1.02] cursor-zoom-in"
+                    unoptimized
                   />
                 ))}
             {images.length > 4 && (
@@ -128,15 +136,18 @@ const SearchImages = ({
               >
                 <div className="flex flex-row items-center space-x-1">
                   {images.slice(3, 6).map((image, i) => (
-                    <img
+                    <Image
                       key={i}
                       src={image.img_src}
                       alt={image.title}
+                      width={48}
+                      height={24}
                       className="h-6 w-12 rounded-md lg:h-3 lg:w-6 lg:rounded-sm aspect-video object-cover"
+                      unoptimized
                     />
                   ))}
                 </div>
-                <p className="text-black/70 dark:text-white/70 text-xs">
+                <p className="text-black/70 dark:text-white/70 text-xs text-left">
                   View {images.length - 3} more
                 </p>
               </button>

@@ -1,10 +1,11 @@
 import { getTavilyApiKey } from './config/serverRegistry';
 
 interface TavilySearchOptions {
-  search_depth?: 'basic' | 'advanced';
+  search_depth?: 'basic' | 'advanced' | 'fast' | 'ultra-fast';
   include_images?: boolean;
   include_answer?: boolean;
   include_domains?: string[];
+  max_results?: number;
 }
 
 export const searchTavily = async (
@@ -29,6 +30,7 @@ export const searchTavily = async (
       include_images: opts?.include_images || false,
       include_answer: opts?.include_answer || false,
       include_domains: opts?.include_domains || [],
+      max_results: opts?.max_results || 10,
     }),
     signal: AbortSignal.timeout(15000), // 15s timeout
   });
@@ -45,5 +47,9 @@ export const searchTavily = async (
     content: r.content,
   }));
 
-  return { results, images: data.images || [] };
+  return { 
+    results, 
+    images: data.images || [],
+    totalResults: data.results?.length || 0 
+  };
 };

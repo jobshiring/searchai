@@ -27,8 +27,10 @@ const academicSearchAction: ResearchAction<typeof schema> = {
     "Use this tool to perform academic searches for scholarly articles, papers, and research studies relevant to the user's query. Provide a list of concise search queries that will help gather comprehensive academic information on the topic at hand.",
   enabled: (config) =>
     config.sources.includes('academic') &&
-    config.classification.classification.skipSearch === false &&
-    config.classification.classification.academicSearch === true,
+    (config.classification.classification.skipSearch === false ||
+      config.searchMode === 'search') &&
+    (config.classification.classification.academicSearch === true ||
+      config.searchMode === 'search'),
   execute: async (input, additionalConfig) => {
     input.queries = input.queries.slice(0, 3);
 
@@ -56,17 +58,29 @@ const academicSearchAction: ResearchAction<typeof schema> = {
     let searchResultsEmitted = false;
 
     let results: Chunk[] = [];
+    let totalResults = 0;
 
     const search = async (q: string) => {
-      const res = await searchTavily(q);
+      const page = additionalConfig.config.page || 1;
+      
+      const res = await searchTavily(q, {
+        max_results: 15,
+        search_depth: additionalConfig.config.mode === 'speed' ? 'ultra-fast' : 'basic',
+      });
 
-      const resultChunks: Chunk[] = res.results.map((r: { content?: string; title: string; url: string }) => ({
+      totalResults = Math.max(totalResults, res.totalResults);
+
+      let resultChunks: Chunk[] = res.results.map((r: { content?: string; title: string; url: string }) => ({
         content: r.content || r.title,
         metadata: {
           title: r.title,
           url: r.url,
         },
       }));
+
+      // Handle pagination by slicing results
+      const startIndex = (page - 1) * 10;
+      resultChunks = resultChunks.slice(startIndex, startIndex + 10);
 
       results.push(...resultChunks);
 
@@ -117,9 +131,14 @@ const academicSearchAction: ResearchAction<typeof schema> = {
 
     await Promise.all(input.queries.map(search));
 
+    const page = additionalConfig.config.page || 1;
+
     return {
       type: 'search_results',
       results,
+      page,
+      totalResults,
+      hasMore: totalResults > page * 10,
     };
   },
 };

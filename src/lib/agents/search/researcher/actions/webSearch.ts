@@ -83,7 +83,8 @@ const webSearchAction: ResearchAction<typeof actionSchema> = {
   },
   enabled: (config) =>
     config.sources.includes('web') &&
-    config.classification.classification.skipSearch === false,
+    (config.classification.classification.skipSearch === false ||
+      config.searchMode === 'search'),
   execute: async (input, additionalConfig) => {
     input.queries = input.queries.slice(0, 3);
 
@@ -111,20 +112,32 @@ const webSearchAction: ResearchAction<typeof actionSchema> = {
     let searchResultsEmitted = false;
 
     let results: Chunk[] = [];
+    let totalResults = 0;
 
     const search = async (q: string) => {
       console.log(`Searching Tavily for: ${q}`);
       try {
-        const res = await searchTavily(q);
+        const page = additionalConfig.config.page || 1;
+        
+        const res = await searchTavily(q, {
+          max_results: 15, // Get a bit more than 10 to allow for filtering
+          search_depth: additionalConfig.config.mode === 'speed' ? 'ultra-fast' : 'basic',
+        });
         console.log(`Tavily response for "${q}":`, res);
 
-        const resultChunks: Chunk[] = res.results.map((r: { content?: string; title: string; url: string }) => ({
+        totalResults = Math.max(totalResults, res.totalResults);
+
+        let resultChunks: Chunk[] = res.results.map((r: { content?: string; title: string; url: string }) => ({
           content: r.content || r.title,
           metadata: {
             title: r.title,
             url: r.url,
           },
         }));
+
+        // Handle pagination by slicing results
+        const startIndex = (page - 1) * 10;
+        resultChunks = resultChunks.slice(startIndex, startIndex + 10);
 
         results.push(...resultChunks);
 
@@ -178,9 +191,14 @@ const webSearchAction: ResearchAction<typeof actionSchema> = {
 
     await Promise.all(input.queries.map(search));
 
+    const page = additionalConfig.config.page || 1;
+
     return {
       type: 'search_results',
       results,
+      page,
+      totalResults,
+      hasMore: totalResults > page * 10,
     };
   },
 };

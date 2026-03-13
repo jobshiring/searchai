@@ -47,6 +47,8 @@ type ChatContext = {
   setAiInsightsEnabled: (enabled: boolean) => void;
   searchMode: 'ai' | 'search';
   setSearchMode: (mode: 'ai' | 'search') => void;
+  webPage: number;
+  setWebPage: (page: number) => void;
   chatModelProvider: ChatModelProvider;
   embeddingModelProvider: EmbeddingModelProvider;
   researchEnded: boolean;
@@ -268,6 +270,8 @@ export const chatContext = createContext<ChatContext>({
   setAiInsightsEnabled: () => {},
   searchMode: 'ai',
   setSearchMode: () => {},
+  webPage: 1,
+  setWebPage: () => {},
   rewrite: () => {},
   sendMessage: async () => {},
   setFileIds: () => {},
@@ -318,12 +322,19 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     return 'ai';
   });
 
+  const [webPage, setWebPage] = useState(1);
+
+  useEffect(() => {
+    setWebPage(1);
+  }, [searchMode]);
+
   useEffect(() => {
     localStorage.setItem('aiInsightsEnabled', JSON.stringify(aiInsightsEnabled));
   }, [aiInsightsEnabled]);
 
   useEffect(() => {
     localStorage.setItem('searchMode', searchMode);
+    setAiInsightsEnabled(searchMode === 'ai');
   }, [searchMode]);
 
   const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
@@ -627,6 +638,9 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
               ? {
                   ...msg,
                   responseBlocks: [...msg.responseBlocks, sourceBlock],
+                  page: data.page,
+                  totalResults: data.totalResults,
+                  hasMore: data.hasMore,
                 }
               : msg,
           ),
@@ -818,9 +832,10 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(true);
     setResearchEnded(false);
     setMessageAppeared(false);
+    setWebPage(page);
 
-    if (messages.length <= 1) {
-      window.history.replaceState(null, '', `/c/${chatId}`);
+    if (page > 1) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     messageId = messageId ?? crypto.randomBytes(7).toString('hex');
@@ -935,6 +950,8 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         setAiInsightsEnabled,
         searchMode,
         setSearchMode,
+        webPage,
+        setWebPage,
         rewrite,
         sendMessage,
         setChatModelProvider,

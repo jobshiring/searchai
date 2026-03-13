@@ -6,6 +6,7 @@ import { getWriterPrompt } from '@/lib/prompts/search/writer';
 import { WidgetExecutor } from './widgets';
 import generateSuggestions from '../suggestions';
 import crypto from 'crypto';
+import { searchTavily } from '@/lib/tavily';
 
 class APISearchAgent {
   async searchAsync(session: SessionManager, input: SearchAgentInput) {
@@ -28,7 +29,53 @@ class APISearchAgent {
 
     let searchPromise: Promise<ResearcherOutput> | null = null;
 
-    if (!classification.classification.skipSearch) {
+    // In 'search' mode, we prioritize a direct, clean search experience like Google/Bing.
+    // We use the raw user query to avoid AI-induced changes to the search results.
+    const isSearchMode = input.config.searchMode === 'search' && !classification.classification.skipSearch;
+
+    if (isSearchMode) {
+      console.log('Using direct path for search mode');
+      const searchTavilyWrapper = async (): Promise<ResearcherOutput> => {
+        const page = input.config.page || 1;
+        // Use raw query for the first attempt to keep it "clean"
+        const query = input.followUp;
+        
+        const res = await searchTavily(query, {
+          max_results: 20,
+          search_depth: input.config.mode === 'speed' ? 'ultra-fast' : 'basic',
+        });
+        
+        const findings = res.results.map((r: any) => ({
+          content: r.content || r.title,
+          metadata: {
+            title: r.title,
+            url: r.url,
+          },
+        }));
+
+        // Manually emit the results as a 'source' block for consistency with Researcher
+        session.emitBlock({
+          id: crypto.randomUUID(),
+          type: 'source',
+          data: findings,
+        });
+
+        // Manually emit 'searchResults' for pagination data
+        session.emit('data', {
+          type: 'searchResults',
+          data: findings,
+          page: page,
+          totalResults: res.totalResults,
+          hasMore: res.totalResults > page * 10,
+        });
+
+        return {
+          findings: [],
+          searchFindings: findings,
+        };
+      };
+      searchPromise = searchTavilyWrapper();
+    } else if (!classification.classification.skipSearch) {
       const researcher = new Researcher();
       searchPromise = researcher.research(SessionManager.createSession(), {
         chatHistory: input.chatHistory,

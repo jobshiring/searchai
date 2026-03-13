@@ -333,7 +333,7 @@ const MessageBox = ({
           )}
         </div>
 
-        {(hasContent || sources.length > 0) && (
+        {section.message.searchMode !== 'search' && (hasContent || sources.length > 0) && (
           <div className="lg:sticky lg:top-20 flex flex-col space-y-6 w-full lg:w-4/12 z-30 h-full pb-4">
             {sources.length > 0 && <SourcePreview sources={sources} />}
             {hasContent && (

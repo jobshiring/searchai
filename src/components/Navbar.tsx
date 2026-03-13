@@ -14,6 +14,7 @@ import {
 import { jsPDF } from 'jspdf';
 import { useChat, Section } from '@/lib/hooks/useChat';
 import { SourceBlock } from '@/lib/types';
+import ModeToggle from './ModeToggle';
 
 const downloadFile = (filename: string, content: string, type: string) => {
   const blob = new Blob([content], { type });
@@ -260,10 +261,13 @@ const Navbar = () => {
             </div>
           </div>
 
-          <div className="flex-1 mx-4 min-w-0">
-            <h1 className="text-center text-sm font-medium text-black/80 dark:text-white/90 truncate">
+          <div className="flex-1 mx-4 min-w-0 flex flex-col items-center">
+            <h1 className="text-sm font-medium text-black/80 dark:text-white/90 truncate max-w-[200px] mb-1">
               {title || 'New Conversation'}
             </h1>
+            <div className="hidden sm:block">
+              <ModeToggle />
+            </div>
           </div>
 
           <div className="flex items-center gap-1 min-w-0">

@@ -23,6 +23,8 @@ export interface Message extends BaseMessage {
   aiInsightsEnabled: boolean;
   searchMode?: 'ai' | 'search';
   page?: number;
+  totalResults?: number;
+  hasMore?: boolean;
 }
 
 export interface File {

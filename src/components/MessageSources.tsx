@@ -1,4 +1,5 @@
-/* eslint-disable @next/next/no-img-element */
+"use client";
+
 import {
   Dialog,
   DialogPanel,
@@ -8,6 +9,7 @@ import {
 } from '@headlessui/react';
 import { File } from 'lucide-react';
 import { Fragment, useState } from 'react';
+import Image from 'next/image';
 import { Chunk } from '@/lib/types';
 
 const MessageSources = ({ sources }: { sources: Chunk[] }) => {
@@ -42,12 +44,13 @@ const MessageSources = ({ sources }: { sources: Chunk[] }) => {
                   <File size={12} className="text-white/70" />
                 </div>
               ) : (
-                <img
+                <Image
                   src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
                   width={16}
                   height={16}
                   alt="favicon"
                   className="rounded-lg h-4 w-4"
+                  unoptimized
                 />
               )}
               <p className="text-xs text-black/50 dark:text-white/50 overflow-hidden whitespace-nowrap text-ellipsis">
@@ -78,13 +81,14 @@ const MessageSources = ({ sources }: { sources: Chunk[] }) => {
                   <File size={12} className="text-white/70" />
                 </div>
               ) : (
-                <img
+                <Image
                   key={i}
                   src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
                   width={16}
                   height={16}
                   alt="favicon"
                   className="rounded-lg h-4 w-4"
+                  unoptimized
                 />
               );
             })}
@@ -129,12 +133,13 @@ const MessageSources = ({ sources }: { sources: Chunk[] }) => {
                                 <File size={12} className="text-white/70" />
                               </div>
                             ) : (
-                              <img
+                              <Image
                                 src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
                                 width={16}
                                 height={16}
                                 alt="favicon"
                                 className="rounded-lg h-4 w-4"
+                                unoptimized
                               />
                             )}
                             <p className="text-xs text-black/50 dark:text-white/50 overflow-hidden whitespace-nowrap text-ellipsis">

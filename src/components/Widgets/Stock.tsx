@@ -2,6 +2,7 @@
 
 import { Clock, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import {
   createChart,
   ColorType,
@@ -295,10 +296,13 @@ const Stock = (props: StockWidgetProps) => {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               {props.website && (
-                <img
+                <Image
                   src={`https://logo.clearbit.com/${new URL(props.website).hostname}`}
                   alt={`${props.symbol} logo`}
+                  width={32}
+                  height={32}
                   className="w-8 h-8 rounded-lg"
+                  unoptimized
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}

@@ -69,6 +69,7 @@ export type AdditionalConfig = {
   llm: BaseLLM<any>;
   embedding: BaseEmbedding<any>;
   session: SessionManager;
+  config: SearchAgentConfig;
 };
 
 export type ResearcherInput = {
@@ -114,6 +115,7 @@ export interface ResearchAction<
     fileIds: string[];
     mode: SearchAgentConfig['mode'];
     sources: SearchSources[];
+    searchMode?: SearchAgentConfig['searchMode'];
   }) => boolean;
   execute: (
     params: z.infer<TSchema>,

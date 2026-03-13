@@ -13,12 +13,10 @@ import {
   getShowWeatherWidget,
 } from '@/lib/config/clientRegistry';
 
-import { useChat } from '@/lib/hooks/useChat';
-import { Switch } from '@headlessui/react';
 import { cn } from '@/lib/utils';
+import ModeToggle from './ModeToggle';
 
 const EmptyChat = () => {
-  const { aiInsightsEnabled, setAiInsightsEnabled } = useChat();
   const [showWeather, setShowWeather] = useState(() =>
     typeof window !== 'undefined' ? getShowWeatherWidget() : true,
   );
@@ -58,35 +56,8 @@ const EmptyChat = () => {
           </h1>
           <div className="w-full max-w-2xl">
             <EmptyChatMessageInput />
-            <div className="flex flex-row items-center justify-center mt-6 space-x-3">
-              <span className={cn(
-                "text-sm font-medium transition-colors duration-200",
-                aiInsightsEnabled ? "text-black/40 dark:text-white/40" : "text-black dark:text-white"
-              )}>
-                Links
-              </span>
-              <Switch
-                checked={aiInsightsEnabled}
-                onChange={setAiInsightsEnabled}
-                className={cn(
-                  aiInsightsEnabled ? 'bg-sky-500' : 'bg-gray-200 dark:bg-dark-300',
-                  'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none'
-                )}
-              >
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    aiInsightsEnabled ? 'translate-x-5' : 'translate-x-0',
-                    'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
-                  )}
-                />
-              </Switch>
-              <span className={cn(
-                "text-sm font-medium transition-colors duration-200",
-                aiInsightsEnabled ? "text-black dark:text-white" : "text-black/40 dark:text-white/40"
-              )}>
-                AI Insights
-              </span>
+            <div className="flex flex-row items-center justify-center mt-6">
+              <ModeToggle />
             </div>
           </div>
         </div>

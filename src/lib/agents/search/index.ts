@@ -25,6 +25,7 @@ class SearchAgent {
         backendId: session.id,
         query: input.followUp,
         aiInsightsEnabled: input.config.aiInsightsEnabled,
+        searchMode: input.config.searchMode,
         createdAt: new Date().toISOString(),
         status: 'answering',
         responseBlocks: [],
@@ -42,6 +43,7 @@ class SearchAgent {
           status: 'answering',
           backendId: session.id,
           aiInsightsEnabled: input.config.aiInsightsEnabled,
+          searchMode: input.config.searchMode,
           responseBlocks: [],
         })
         .where(
@@ -81,7 +83,10 @@ class SearchAgent {
 
     let searchPromise: Promise<ResearcherOutput> | null = null;
 
-    if (!classification.classification.skipSearch) {
+    if (
+      !classification.classification.skipSearch ||
+      input.config.searchMode === 'search'
+    ) {
       const researcher = new Researcher();
       searchPromise = researcher.research(session, {
         chatHistory: input.chatHistory,

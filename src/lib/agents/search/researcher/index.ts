@@ -24,6 +24,7 @@ class Researcher {
       fileIds: input.config.fileIds,
       mode: input.config.mode,
       sources: input.config.sources,
+      searchMode: input.config.searchMode,
     });
 
     const availableActionsDescription =
@@ -32,6 +33,7 @@ class Researcher {
         fileIds: input.config.fileIds,
         mode: input.config.mode,
         sources: input.config.sources,
+        searchMode: input.config.searchMode,
       });
 
     const researchBlockId = crypto.randomUUID();
@@ -51,6 +53,7 @@ class Researcher {
           <conversation>
           ${formatChatHistoryAsString(input.chatHistory.slice(-10))}
            User: ${input.followUp} (Standalone question: ${input.classification.standaloneFollowUp})
+           ${input.config.searchMode === 'search' ? '\nIMPORTANT: You are in search mode. You MUST perform web searches to find relevant results for the user query. Do not finish without performing at least one search.' : ''}
            </conversation>
         `,
       },
@@ -178,6 +181,7 @@ class Researcher {
         session: session,
         researchBlockId: researchBlockId,
         fileIds: input.config.fileIds,
+        config: input.config,
       });
 
       actionResults.forEach((action, i) => {
@@ -224,6 +228,8 @@ class Researcher {
       .filter((a) => a.type === 'search_results')
       .flatMap((a) => a.results);
 
+    const searchResultsData = actionOutput.find((a) => a.type === 'search_results') as any;
+
     const seenUrls = new Map<string, number>();
 
     const filteredSearchResults = searchResults
@@ -250,6 +256,16 @@ class Researcher {
       type: 'source',
       data: filteredSearchResults,
     });
+
+    if (searchResultsData) {
+      session.emit('data', {
+        type: 'searchResults',
+        data: filteredSearchResults,
+        page: searchResultsData.page,
+        totalResults: searchResultsData.totalResults,
+        hasMore: searchResultsData.hasMore,
+      });
+    }
 
     return {
       findings: actionOutput,
